@@ -57,6 +57,7 @@ class AudiovaultSerializer:
         self.itemcode_mapping = {}
         self.to_copy = {}
         
+        # Get path -> Itemcode mapping of old audiovault ingests to prevent duplicate titles
         for meta_file in os.listdir(ingest):
             if ingested_meta_pattern.match(meta_file):
                 # this metadata is an old XML - get past filepath - itemcode mapping
@@ -127,78 +128,81 @@ class AudiovaultSerializer:
                   self.to_copy[os.path.normcase(os.path.join(self.media, media_location))] = item_code
                   titles += avmeta
                   
-            if len(titles) >= TITLES_PER_FILE:
-                doc, tag, text = Doc().tagtext()
-                doc.asis('<?xml version="1.0" encoding="UTF-8"?>')
-                with tag("titles"):
-                    for avmeta in titles:
-                        allegiance = ""
-                        file_name = "".join([c for c in avmeta.File if unicodedata.category(c) not in forbidden_unicode])
-
-                        allegiance = str(avmeta.Description) + "/" + file_name
-
-                        with tag("title"):
-                            with tag("Itemcode"):
-                                text(item_code)
-                            with tag("Key1"):
-                                text(item_code)
-                            with tag("TitleName"):
-                                meta_value = str(avmeta.Description)
-                                text(meta_value)
-                            with tag("KEXPAllegianceMediaRef"):
-                                text(allegiance)
-                            with tag("KEXPAudioVaultCategory"):
-                                meta_value = str(avmeta.Cat)
-                                text(meta_value)
-                            with tag("KEXPClient"):
-                                meta_value = str(avmeta.ClientID)
-                                text(meta_value)
-                            with tag("KEXPStartDate"):
-                                meta_value = avmeta.StartDate
-                                if meta_value:
-                                    meta_value = meta_value.strftime('%m/%d/%Y %I:%M:%S')
-                                else:
-                                    meta_value = str(meta_value)
-                                text(meta_value)
-                            with tag("TitleKillDate"):
-                                meta_value = avmeta.KillDate
-                                if meta_value:
-                                    meta_value = meta_value.strftime('%m/%d/%Y %I:%M:%S')
-                                else:
-                                    meta_value = str(meta_value)
-                                text(meta_value)
-                            with tag("KEXPOutCue"):
-                               meta_value = str(avmeta.OutCue)
-                               text(meta_value)
-
-                            with tag("KEXPSource"):
-                                text(self.source)
-
-                                
-                            for meta_name, meta_value in avmeta._asdict().items():
-                                dalet_name = "AV_" + meta_name
-                                if type(meta_value) == datetime.datetime:
-                                    meta_value = meta_value.strftime('%m/%d/%Y %I:%M:%S')
-                                else:
-                                    meta_value = str(meta_value)
-                                with tag(dalet_name):
-                                    text(meta_value)
-                                    
-                            with open(self.success_log_file, "a+") as log:
-                                log.write(item_code + "\t" + media_location + "\t" + avmeta.Path + "\n")
-                            serialized += 1
-            
-            formatted_data = indent(doc.getvalue())
-            output_file = "audiovault_metadata_" + from_date.strftime("%m%d%Y_") + str(len(xml_files)) + ".xml"
-            output_file = os.path.join(self.staging, output_file)
-            with open(output_file, "wb") as f:
-                f.write(formatted_data.encode("UTF-8"))    
-            print(str(serialized) + " Audiovault title XMLs written")
-            results = updated_meta.fetchmany(TITLES_PER_FILE)
-            xml_files.append(output_file)
 
         cursor.close()
         conn.close()
+        
+        sliced = titles[0:TITLES_PER_FILE]
+        while len(sliced) > 0:
+            doc, tag, text = Doc().tagtext()
+            doc.asis('<?xml version="1.0" encoding="UTF-8"?>')
+            with tag("titles"):
+                for avmeta in sliced:
+                    allegiance = ""
+                    file_name = "".join([c for c in avmeta.File if unicodedata.category(c) not in forbidden_unicode])
+
+                    allegiance = str(avmeta.Description) + "/" + file_name
+
+                    with tag("title"):
+                        with tag("Itemcode"):
+                            text(item_code)
+                        with tag("Key1"):
+                            text(item_code)
+                        with tag("TitleName"):
+                            meta_value = str(avmeta.Description)
+                            text(meta_value)
+                        with tag("KEXPAllegianceMediaRef"):
+                            text(allegiance)
+                        with tag("KEXPAudioVaultCategory"):
+                            meta_value = str(avmeta.Cat)
+                            text(meta_value)
+                        with tag("KEXPClient"):
+                            meta_value = str(avmeta.ClientID)
+                            text(meta_value)
+                        with tag("KEXPStartDate"):
+                            meta_value = avmeta.StartDate
+                            if meta_value:
+                                meta_value = meta_value.strftime('%m/%d/%Y %I:%M:%S')
+                            else:
+                                meta_value = str(meta_value)
+                            text(meta_value)
+                        with tag("TitleKillDate"):
+                            meta_value = avmeta.KillDate
+                            if meta_value:
+                                meta_value = meta_value.strftime('%m/%d/%Y %I:%M:%S')
+                            else:
+                                meta_value = str(meta_value)
+                            text(meta_value)
+                        with tag("KEXPOutCue"):
+                           meta_value = str(avmeta.OutCue)
+                           text(meta_value)
+
+                        with tag("KEXPSource"):
+                            text(self.source)
+
+                            
+                        for meta_name, meta_value in avmeta._asdict().items():
+                            dalet_name = "AV_" + meta_name
+                            if type(meta_value) == datetime.datetime:
+                                meta_value = meta_value.strftime('%m/%d/%Y %I:%M:%S')
+                            else:
+                                meta_value = str(meta_value)
+                            with tag(dalet_name):
+                                text(meta_value)
+                                
+                        with open(self.success_log_file, "a+") as log:
+                            log.write(item_code + "\t" + media_location + "\t" + avmeta.Path + "\n")
+                        serialized += 1
+            
+                formatted_data = indent(doc.getvalue())
+                output_file = "audiovault_metadata_" + from_date.strftime("%m%d%Y_") + str(len(xml_files)) + ".xml"
+                output_file = os.path.join(self.staging, output_file)
+                with open(output_file, "wb") as f:
+                    f.write(formatted_data.encode("UTF-8"))    
+                print(str(serialized) + " Audiovault title XMLs written")
+                results = updated_meta.fetchmany(TITLES_PER_FILE)
+                xml_files.append(output_file)
+        
         most_recent = 0
         print(self.to_copy)
         for directory in os.listdir(self.media):
