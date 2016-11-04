@@ -1,0 +1,6 @@
+ffmpeg_location: 
+ffmpeg_command: -acodec pcm_s16le -ac 2
+transcode_bat: transcode.bat
+failure_directory: 
+transcode_dir: 
+staging: staging_folder
