@@ -1,0 +1,24 @@
+# Final file ingest locations - changes w/ computer's drive mapping, test vs. production Dalet, etc.
+# Change these to reflect your computer's settings
+
+# Dalet XML Ingest folder for audiovault metadata
+meta_ingest: 
+# Dalet media (staging) ingest folder for audiovault media
+media_ingest: 
+
+# Locations of files on audiovault machine - should be static, but might be good to check
+
+# Location of AVAir Access database file
+av_location: 
+# Location of audiovault media (base directory)
+av_media: 
+
+# Date of last known Audiovault ingest to Dalet - probably leave alone,
+# Better to query too much than miss something.
+last_ingest: [2015, 12, 5]
+
+# Do not change settings below here
+media_files: .\media\
+access_db: avair.mdb
+staging: staging_folder
+copy_bat: files_to_copy.bat
