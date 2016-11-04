@@ -98,8 +98,6 @@ class AudiovaultSerializer:
         # If media is already a title in dalet, re-use the previous itemcode (prevent duplicate titles)
         if media_path in self.itemcode_mapping.keys():
             item_code = self.itemcode_mapping[media_path]
-            if media_location:
-                print(media_path + ": " + str(item_code))
         else:
             item_code = str(uuid.uuid4())
             
@@ -126,9 +124,9 @@ class AudiovaultSerializer:
                 # if we have media (and an itemcode), perform serialization
                 if item_code and media_location:
                   self.to_copy[os.path.normcase(os.path.join(self.media, media_location))] = item_code
-                  titles += avmeta
+                  titles.append(avmeta)
                   
-
+            results = updated_meta.fetchmany(TITLES_PER_FILE)
         cursor.close()
         conn.close()
         
@@ -191,17 +189,21 @@ class AudiovaultSerializer:
                                 text(meta_value)
                                 
                         with open(self.success_log_file, "a+") as log:
-                            log.write(item_code + "\t" + media_location + "\t" + avmeta.Path + "\n")
+                            log.write(item_code + "\t" + str(media_location) + "\t" + str(avmeta.Path) + "\n")
                         serialized += 1
             
-                formatted_data = indent(doc.getvalue())
-                output_file = "audiovault_metadata_" + from_date.strftime("%m%d%Y_") + str(len(xml_files)) + ".xml"
-                output_file = os.path.join(self.staging, output_file)
-                with open(output_file, "wb") as f:
-                    f.write(formatted_data.encode("UTF-8"))    
-                print(str(serialized) + " Audiovault title XMLs written")
-                results = updated_meta.fetchmany(TITLES_PER_FILE)
-                xml_files.append(output_file)
+            formatted_data = indent(doc.getvalue())
+            output_file = "audiovault_metadata_" + from_date.strftime("%m%d%Y_") + str(len(xml_files)) + ".xml"
+            output_file = os.path.join(self.staging, output_file)
+            with open(output_file, "wb") as f:
+                f.write(formatted_data.encode("UTF-8"))    
+            print(str(serialized) + " Audiovault title XMLs written")
+            xml_files.append(output_file)
+            end_slice = serialized + TITLES_PER_FILE
+            sliced = titles[serialized:end_slice]
+            break
+        print(serialized)
+        print(end_slice)
         
         most_recent = 0
         print(self.to_copy)
