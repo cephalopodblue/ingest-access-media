@@ -7,7 +7,9 @@
 # Dalet XML Ingest folder for audiovault metadata
 meta_ingest: 
 # Dalet media (staging) ingest folder for audiovault media
-media_ingest: 
+media_ingest:
+# Folder that files that failed dalet media ingest are moved to
+failure_directory:
 
 ################################
 #   Audiovault Settings
@@ -24,6 +26,14 @@ av_media:
 # Better to query too much than miss something.
 last_ingest: [2015, 12, 5]
 
+
+##############################
+# Transcoding settings
+##############################
+# Location of ffmpeg command (if ffmpeg has been properly put in the path, should just be ffmpeg)
+ffmpeg_location: ffmpeg
+ffmpeg_command: -acodec pcm_s16le -ac 2
+transcode_bat: transcode.bat
 
 # Do not change settings below
 media_files: .\media\

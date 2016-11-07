@@ -32,7 +32,7 @@ def get_format_information(src_file):
         return format_information
         
 if __name__ == "__main__":
-    with open("transcode_config.yml") as f:
+    with open("config.yml") as f:
         config = yaml.load(f)
         
     today = datetime.date.today()
@@ -49,9 +49,10 @@ if __name__ == "__main__":
         
     for file_name in os.listdir(config["failure_directory"]):
         item_code = os.path.splitext(file_name)[0]
+        # get failed directory from configurations
         full_path = os.path.join(config["failure_directory"], file_name)
         staging_path = os.path.join(config["staging"], file_name)
-        dest_path = os.path.join(config["transcode_dir"], file_name)
+        dest_path = os.path.join(config["media_ingest"], file_name)
         format_info = get_format_information(full_path)
         with open(log_file, "a") as f:
             f.write(item_code)
