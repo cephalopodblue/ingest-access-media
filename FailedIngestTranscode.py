@@ -3,6 +3,7 @@ import yaml
 import datetime
 import os
 import collections
+import subprocess
 
 FormatInfo = collections.namedtuple("FormatInfo", "FormatCode Channels Samplerate Bitrate")
 
@@ -53,6 +54,7 @@ if __name__ == "__main__":
         full_path = os.path.join(config["failure_directory"], file_name)
         staging_path = os.path.join(config["staging"], file_name)
         dest_path = os.path.join(config["media_ingest"], file_name)
+        ffmpeg_log = os.path.join(config["staging"], item_code + "_transcode_log.txt")
         format_info = get_format_information(full_path)
         with open(log_file, "a") as f:
             f.write(item_code)
@@ -63,3 +65,5 @@ if __name__ == "__main__":
             f.write(config["ffmpeg_location"] + " -i \"" + full_path + "\" " + config["ffmpeg_command"] + " \"" + staging_path + "\"\n")
             f.write("del /f \"" + full_path + "\"\n")
             f.write("move \"" + staging_path + "\" \"" + dest_path + "\"\n")
+
+    subprocess.run(config["transcode_bat"])
