@@ -248,4 +248,4 @@ if __name__ == "__main__":
     if last_modified:
         with open(config['copy_bat'], 'w+') as f:
             f.write("xcopy " + config["av_media"] + " " + config["media_files"] + " /d:" + last_modified.strftime("%m-%d-%Y") + " /i /s\n\n")
-            f.write("xcopy " + config["av_location"] + " .\\")
+            f.write("xcopy " + config["av_location"] + " .\\ /y")
