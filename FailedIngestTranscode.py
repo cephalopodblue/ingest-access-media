@@ -62,7 +62,7 @@ if __name__ == "__main__":
                 f.write(str(field) + "\t")
             f.write("\n")
         with open(config["transcode_bat"], "a") as f:
-            f.write(config["ffmpeg_location"] + " -i \"" + full_path + "\" " + config["ffmpeg_command"] + " \"" + staging_path + "\"\n")
+            f.write(config["ffmpeg_location"] + " -i \"" + full_path + "\" " + config["ffmpeg_command"] + " \"" + staging_path + "\" 2> \"" + ffmpeg_log + "\"\n")
             f.write("del /f \"" + full_path + "\"\n")
             f.write("move \"" + staging_path + "\" \"" + dest_path + "\"\n")
 
